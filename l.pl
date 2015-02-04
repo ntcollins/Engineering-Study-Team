@@ -35,20 +35,25 @@ print("</HTML>\n");
 package display;
 
 my @buffer = ();
+my $size_w = 0;
+my $size_h = 0;
+
 sub new
 {
-	my ($class, $size_x, $size_y) = @_;
+	my ($class, $width, $height) = @_;
 	my $self = {};
 	bless $self, $class;
+	
+	$size_w = $width;
+	$size_h = $height;
 
-	for(my $y; $y<$size_y; $y++)
+	for(my $y; $y<$height; $y++)
 	{
-	  for(my $x; $x<$size_x; $x++)
+	  for(my $x; $x<$width; $x++)
 	  {
 		$buffer[$x][$y] = ' ';
 	  }
 	}
-
 	return $self;
 }
 
@@ -57,34 +62,42 @@ sub printscreen()
 	my $self = shift;
 
 	printf("%s%s%s", $space, $space, $space);
-  for(my $x=0; $x<32; $x++)
-  {
-	printf("%s%i", $x<10?$space:"", $x);
-  }
-  printf("%s", $break);
- 
-  for(my $y=0; $y<24; $y++)
-  {
-  printf("%s%d ", $y<10?$space:"", $y);
-	for(my $x=0; $x<32; $x++)
+	for(my $x=0; $x<$size_w; $x++)
 	{
-		if ($buffer[$x][$y] eq ' ')
-		{
-			printf("%s%s", $space, $space);
-		}
-		else
-		{
-			printf("%s%s", $buffer[$x][$y], $space);
-		}
+		printf("%s%i", $x<10?$space:"", $x);
 	}
 	printf("%s", $break);
-  }
+
+	for(my $y=0; $y<$size_h; $y++)
+	{
+		printf("%s%d ", ($y<$size_w)?$space:"", $y);
+		for(my $x=0; $x<32; $x++)
+		{
+			if ($buffer[$x][$y] eq ' ')
+			{
+				printf("%s%s", $space, $space);
+			}
+			else
+			{
+				printf("%s%s", $buffer[$x][$y], $space);
+			}
+		}
+		printf("%s", $break);
+	}
 }
 
 sub point()
 {
 	my ( $self, $x, $y) = @_;
-	$buffer[$x][$y] = '@';
+	if($x<$size_w && $x >=0 && $y< $size_h && $y>=0)
+	{
+		$buffer[$x][$y] = '@';
+	}
+	else
+	{
+		die ("Error - drawing out of bounds\n");
+	}
+	
 }
 
 sub box()
@@ -100,36 +113,35 @@ sub box()
 
 sub line()
 {
-  my ( $self, $x1, $y1, $x2, $y2) = @_;
+	my ( $self, $x1, $y1, $x2, $y2) = @_;
 
-  #printf("lne:  %i %i %i %i\n", $x1, $y1, $x2, $y2);
-  if( $x1 == $x2)
-  {
-	for(my $y=$y1; $y<=$y2; $y++)
+	#printf("lne:  %i %i %i %i\n", $x1, $y1, $x2, $y2);
+	if( $x1 == $x2)
 	{
-	  $buffer[$x1][$y] = '@';
+		for(my $y=$y1; $y<=$y2; $y++)
+		{
+			$self->point($x1, $y);
+		}
 	}
-  }
-
-  elsif( $y1 == $y2)
-  {
-	#print("here");
-	for(my $x=$x1; $x<=$x2; $x++)
+	elsif( $y1 == $y2)
 	{
-	  $buffer[$x][$y1] = '@';
+		#print("here");
+		for(my $x=$x1; $x<=$x2; $x++)
+		{
+			$self->point($x, $y1);
+		}
 	}
-  }
-  else
-  {
-	my $m = ($y2 - $y1) / ($x2 - $x1);
-	my $b = -($m * $x1 - $y1);
-	my $stepSize = 1/$m > 1 ? 1 : 1/$m;
-	for(my $x = $x1; ($x2>$x1) ? $x <= $x2 : $x >= $x1; ($x+=$stepSize))
+	else
 	{
-		my $y = $x * $m + $b;
-		$self->point($x, $y);
+		my $m = ($y2 - $y1) / ($x2 - $x1);
+		my $b = -($m * $x1 - $y1);
+		my $stepSize = 1/$m > 1 ? 1 : 1/$m;
+		for(my $x = $x1; ($x2>$x1) ? $x <= $x2 : $x >= $x1; ($x+=$stepSize))
+		{
+			my $y = $x * $m + $b;
+			$self->point($x, $y);
+		}
 	}
- }
 }
 
 sub circle()
@@ -141,7 +153,7 @@ sub circle()
 		my $x = $x_center + cos($i) * $r;
 		my $y = $y_center + sin($i) * $r;
 		
-	  $buffer[$x][$y] =  '@';
+	  $self->point($x, $y);
 	}
 }
 
