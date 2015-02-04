@@ -14,14 +14,14 @@ if (0)
 }
 
 # HTTP HEADER
-print ("Content-type: text/html \n\n");
+print("Content-type: text/html \n\n");
 print("<HTML>\n");
 print('<BODY style="font-family: new courier;">' . "\n");
 
 my $scr = new display(32,24);
-  
+
 $scr->point(0,0);
-$scr->point(31,23);
+$scr->point($scr->getMaxX(),$scr->getMaxY());
 $scr->box(5,8,18,14);
 $scr->line(14,2,29,10);
 $scr->line(0,2,4,16);
@@ -34,7 +34,7 @@ print("</HTML>\n");
 
 package display;
 
-my @buffer = ();
+my @buffer = (); #screen buffer
 my $size_w = 0;
 my $size_h = 0;
 
@@ -51,7 +51,7 @@ sub new
 	{
 	  for(my $x; $x<$width; $x++)
 	  {
-		$buffer[$x][$y] = ' ';
+		$buffer[$x][$y] = $space;
 	  }
 	}
 	return $self;
@@ -157,3 +157,14 @@ sub circle()
 	}
 }
 
+sub getMaxX()
+{
+	my ( $self ) = @_;
+	  return $size_w - 1;
+}
+
+sub getMaxY()
+{
+	my ( $self ) = @_;
+	  return $size_h - 1;
+}
